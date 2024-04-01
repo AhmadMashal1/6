@@ -2,8 +2,8 @@ const express = require('express');
 const app = express();
 const cors = require("cors");
 const dotenv = require("dotenv");
-const jwt = require('jsonwebtoken'); // Required for JWT operations
-const passport = require('passport'); // Assuming passport is already configured with jwt strategy
+const jwt = require('jsonwebtoken');
+const passport = require('passport');
 dotenv.config();
 const userService = require("./user-service.js");
 
@@ -11,9 +11,6 @@ const HTTP_PORT = process.env.PORT || 8000;
 
 app.use(express.json());
 app.use(cors());
-
-// Assuming Passport and its JWT strategy are initialized here
-// e.g., require('./config/passport')(passport);
 app.use(passport.initialize());
 
 app.post("/api/user/register", (req, res) => {
@@ -28,21 +25,17 @@ app.post("/api/user/register", (req, res) => {
 app.post("/api/user/login", (req, res) => {
     userService.checkUser(req.body)
     .then((user) => {
-        // Create payload
         const payload = {
             _id: user._id,
             userName: user.userName
         };
-        // Sign the token
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }); // Adjust expiresIn as needed
-        // Send the token in the response
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
         res.json({ "message": "login successful", "token": token });
     }).catch(msg => {
         res.status(422).json({ "message": msg });
     });
 });
 
-// Protected Routes
 app.get("/api/user/favourites", passport.authenticate('jwt', { session: false }), (req, res) => {
     userService.getFavourites(req.user._id)
     .then(data => {
